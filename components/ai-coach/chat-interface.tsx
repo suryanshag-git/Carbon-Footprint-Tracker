@@ -34,7 +34,7 @@ export default function ChatInterface() {
   useEffect(() => {
     async function loadChatHistory() {
       // Get current user session
-      const { data: { user } } = await supabase.auth.getSession()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
       // Fetch latest conversation

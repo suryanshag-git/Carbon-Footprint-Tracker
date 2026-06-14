@@ -51,7 +51,7 @@ export default function EmissionCharts({ breakdown, timeline }: EmissionChartsPr
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [`${value.toFixed(1)} kg`, "Emissions"]}
+                  formatter={(value: any) => [`${Number(value).toFixed(1)} kg`, "Emissions"]}
                   contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                 />
                 <Legend iconType="circle" layout="horizontal" verticalAlign="bottom" align="center" />
@@ -94,7 +94,7 @@ export default function EmissionCharts({ breakdown, timeline }: EmissionChartsPr
                   className="text-xs fill-muted-foreground"
                 />
                 <Tooltip
-                  formatter={(value: number) => [`${value.toFixed(1)} kg`, "CO₂e"]}
+                  formatter={(value: any) => [`${Number(value).toFixed(1)} kg`, "CO₂e"]}
                   contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                 />
                 <Area

@@ -145,8 +145,8 @@ export default function TravelForm() {
                       <option value="motorbike">Motorbike</option>
                       <option value="bus">Public Bus</option>
                       <option value="train">Subway/Train</option>
-                      <option value="flight_short">Short-haul Flight (<1500 km)</option>
-                      <option value="flight_long">Long-haul Flight (>1500 km)</option>
+                      <option value="flight_short">{"Short-haul Flight (< 1500 km)"}</option>
+                      <option value="flight_long">{"Long-haul Flight (> 1500 km)"}</option>
                     </select>
                   </FormControl>
                   <FormMessage />
