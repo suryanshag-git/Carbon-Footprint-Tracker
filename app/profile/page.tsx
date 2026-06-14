@@ -4,11 +4,11 @@ import PDFReportButton from "@/components/profile/pdf-report-button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { logoutAction } from "@/app/auth/actions"
-import { LogOut, Award, Flame, Star, ShieldAlert } from "lucide-react"
+import { LogOut, Award, Flame, Star, Trophy } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 
 export const revalidate = 0
 
-// Server Action trigger helper for log out in Server Components
 async function handleLogout() {
   "use server"
   await logoutAction()
@@ -18,20 +18,23 @@ async function handleLogout() {
 export default async function ProfilePage() {
   const supabase = await createClient()
 
-  // 1. Get auth session
+  // 1. Get user session
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     redirect("/auth/login")
   }
 
-  // 2. Fetch user profile details
+  // 2. Fetch user profile
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single()
 
-  // 3. Fetch activities (past 30 days)
+  const currentPoints = profile?.points || 0
+  const currentStreak = profile?.streak || 0
+
+  // 3. Fetch activities (past 30 days) for report
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
@@ -42,13 +45,32 @@ export default async function ProfilePage() {
     .gte("logged_at", thirtyDaysAgo.toISOString())
     .order("logged_at", { ascending: false })
 
-  // 4. Fetch unlocked badges
-  const { data: userBadges } = await supabase
-    .from("user_badges")
-    .select("awarded_at, badges(*)")
+  // 4. Fetch total activities logged all-time
+  const { count: totalActivities } = await supabase
+    .from("activities")
+    .select("*", { count: "exact", head: true })
     .eq("user_id", user.id)
 
-  // 5. Aggregate emissions for PDF report
+  const activitiesCount = totalActivities || 0
+
+  // 5. Fetch all master badges
+  const { data: allBadges } = await supabase
+    .from("badges")
+    .select("*")
+    .order("threshold", { ascending: true })
+
+  // 6. Fetch user unlocked badges
+  const { data: userBadges } = await supabase
+    .from("user_badges")
+    .select("awarded_at, badge_id")
+    .eq("user_id", user.id)
+
+  const unlockedBadgeMap = new Map<string, string>() // badge_id -> awarded_at
+  userBadges?.forEach((ub) => {
+    unlockedBadgeMap.set(ub.badge_id, ub.awarded_at)
+  })
+
+  // 7. Aggregate carbon emissions for report
   let travelCO2 = 0
   let dietCO2 = 0
   let energyCO2 = 0
@@ -82,19 +104,18 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header section */}
+      {/* Profile Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-5">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">User Profile</h1>
-          <p className="text-muted-foreground">Manage your credentials, achievements, and reports.</p>
+          <p className="text-muted-foreground">View your milestones, stats, and download your footprint report.</p>
         </div>
         
         <div className="flex items-center gap-2">
-          {/* PDF Report Export Button */}
           <PDFReportButton
             username={profile?.username || "user"}
-            points={profile?.points || 0}
-            streak={profile?.streak || 0}
+            points={currentPoints}
+            streak={currentStreak}
             totalCO2={netTotalCO2}
             breakdown={breakdownData}
             recentActivities={activities || []}
@@ -109,12 +130,12 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      {/* User Stats Card */}
+      {/* User Stats Card row */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="border-emerald-100 dark:border-emerald-950/40">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">User Handle</CardTitle>
-            <span className="text-emerald-600">@</span>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Username</CardTitle>
+            <span className="text-emerald-600 font-bold">@</span>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold text-emerald-800 dark:text-emerald-400">
@@ -129,10 +150,10 @@ export default async function ProfilePage() {
         <Card className="border-emerald-100 dark:border-emerald-950/40">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Accumulated Points</CardTitle>
-            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+            <Star className="h-4 w-4 text-amber-500 fill-amber-500 stroke-none" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profile?.points || 0} pts</div>
+            <div className="text-2xl font-bold">{currentPoints} pts</div>
             <p className="text-xs text-muted-foreground mt-1">Level up by logging actions</p>
           </CardContent>
         </Card>
@@ -140,51 +161,85 @@ export default async function ProfilePage() {
         <Card className="border-emerald-100 dark:border-emerald-950/40">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Streak</CardTitle>
-            <Flame className="h-4 w-4 text-orange-500 fill-orange-500" />
+            <Flame className="h-4 w-4 text-orange-500 fill-orange-500 stroke-none" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profile?.streak || 0} Days</div>
+            <div className="text-2xl font-bold">{currentStreak} Days</div>
             <p className="text-xs text-muted-foreground mt-1">Log activities daily to maintain</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Achievements Badges Card */}
+      {/* Gamified Badges Showcase */}
       <Card className="border-emerald-100 dark:border-emerald-950/40">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400">
             <Award className="h-5 w-5 text-emerald-600" />
-            Earned Badges
+            Achievements Showcase
           </CardTitle>
-          <CardDescription>Achievements unlocked through logging consistency and carbon saving.</CardDescription>
+          <CardDescription>Track completed and upcoming milestone badges below.</CardDescription>
         </CardHeader>
         <CardContent>
-          {userBadges && userBadges.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {userBadges.map((ub: any, idx) => {
-                const badge = ub.badges
-                return (
-                  <div key={idx} className="flex items-start space-x-3 p-3 bg-muted/20 border border-muted/50 rounded-lg">
-                    <div className="text-2xl p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded-md">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {allBadges && allBadges.map((badge) => {
+              const unlockedAt = unlockedBadgeMap.get(badge.id)
+              const isUnlocked = !!unlockedAt
+
+              // Calculate progress for locked items
+              let progress = 0
+              let progressText = ""
+
+              if (badge.category === "points") {
+                progress = Math.min((currentPoints / badge.threshold) * 100, 100)
+                progressText = `${currentPoints} / ${badge.threshold} pts`
+              } else if (badge.category === "streak") {
+                progress = Math.min((currentStreak / badge.threshold) * 100, 100)
+                progressText = `${currentStreak} / ${badge.threshold} days`
+              } else if (badge.category === "activity") {
+                progress = Math.min((activitiesCount / badge.threshold) * 100, 100)
+                progressText = `${activitiesCount} / ${badge.threshold} logs`
+              }
+
+              return (
+                <div
+                  key={badge.id}
+                  className={`flex flex-col justify-between p-4 border rounded-xl transition-all ${
+                    isUnlocked
+                      ? "bg-emerald-50/15 border-emerald-500/30 dark:bg-emerald-950/5 dark:border-emerald-900/50"
+                      : "bg-muted/10 border-border opacity-70"
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className={`text-2xl p-2 rounded-lg ${isUnlocked ? "bg-emerald-100 dark:bg-emerald-950/45 text-emerald-800" : "bg-muted/80 text-muted-foreground grayscale"}`}>
                       🏆
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-emerald-800 dark:text-emerald-400">{badge.name}</h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">{badge.description}</p>
-                      <span className="inline-block text-[10px] text-muted-foreground bg-muted p-0.5 px-1.5 rounded mt-2">
-                        Unlocked {new Date(ub.awarded_at).toLocaleDateString()}
-                      </span>
+                      <h4 className={`font-bold text-sm ${isUnlocked ? "text-emerald-800 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                        {badge.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{badge.description}</p>
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground text-sm border border-dashed rounded-lg bg-muted/5">
-              <ShieldAlert className="h-8 w-8 mx-auto mb-2 text-muted-foreground/60" />
-              No badges unlocked yet. Keep logging to earn achievements!
-            </div>
-          )}
+
+                  <div className="mt-4 pt-3 border-t border-dashed border-border/80">
+                    {isUnlocked ? (
+                      <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-500/10 dark:bg-emerald-500/5 p-1 px-2 rounded-full text-center">
+                        Unlocked on {new Date(unlockedAt).toLocaleDateString()}
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>Progress</span>
+                          <span>{progressText}</span>
+                        </div>
+                        <Progress value={progress} className="h-1.5 bg-muted-foreground/10" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </CardContent>
       </Card>
     </div>
