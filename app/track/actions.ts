@@ -29,14 +29,48 @@ export async function logActivityAction(data: LogActivityInput) {
     const userId = user.id
 
     // 2. Get current profile stats (points, streak, last_active)
-    const { data: profile, error: profileError } = await supabase
+    let profile = null
+    const { data: fetchedProfile, error: profileError } = await supabase
       .from("profiles")
       .select("points, streak, last_active")
       .eq("id", userId)
-      .single()
+      .maybeSingle()
 
-    if (profileError || !profile) {
-      return { error: "Failed to load user profile." }
+    if (profileError) {
+      console.warn("Non-fatal error retrieving user profile, attempting fallback creation:", profileError.message)
+    }
+
+    if (!fetchedProfile) {
+      // Profile does not exist (e.g., auth trigger bypass or race condition)
+      // Generate a unique fallback username
+      const randomSuffix = Math.random().toString(36).substring(2, 7)
+      const cleanEmailPrefix = user.email 
+        ? user.email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "").substring(0, 12) 
+        : "user"
+      const fallbackUsername = `eco_${cleanEmailPrefix}_${randomSuffix}`
+
+      const { data: newProfile, error: createError } = await supabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          username: fallbackUsername,
+          full_name: user.user_metadata?.full_name || null,
+          avatar_url: user.user_metadata?.avatar_url || null,
+          points: 100, // starter points
+          streak: 0,
+          last_active: new Date().toISOString(),
+        })
+        .select("points, streak, last_active")
+        .single()
+
+      if (createError) {
+        return { 
+          error: `User profile is missing and fallback creation failed: ${createError.message}. Details: ${createError.details || "none"}` 
+        }
+      }
+      profile = newProfile
+    } else {
+      profile = fetchedProfile
     }
 
     // 3. Compute stats
