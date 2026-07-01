@@ -21,6 +21,9 @@ alter table public.profiles enable row level security;
 create policy "Allow public read access to profiles" on public.profiles
   for select using (true);
 
+create policy "Allow users to insert their own profile" on public.profiles
+  for insert with check (auth.uid() = id);
+
 create policy "Allow users to update their own profile" on public.profiles
   for update using (auth.uid() = id);
 
@@ -162,3 +165,24 @@ insert into public.badges (name, description, icon_url, category, threshold) val
   ('On Fire', 'Maintain a 7-day activity streak', '/badges/streak_7.png', 'streak', 7),
   ('Climate Champion', 'Maintain a 30-day activity streak', '/badges/streak_30.png', 'streak', 30)
 on conflict (name) do nothing;
+
+-- SCHEMA & TABLE PRIVILEGES GRANTS FOR SUPABASE API ROLES
+-- Ensures standard roles (anon, authenticated, service_role) have DB-level access to public schema tables.
+grant usage on schema public to postgres, anon, authenticated, service_role;
+
+grant all privileges on all tables in schema public to postgres, service_role;
+grant all privileges on all sequences in schema public to postgres, service_role;
+grant all privileges on all routines in schema public to postgres, service_role;
+
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant select, update, usage on all sequences in schema public to authenticated;
+
+grant select on all tables in schema public to anon;
+
+alter default privileges in schema public grant all on tables to postgres, service_role;
+alter default privileges in schema public grant all on sequences to postgres, service_role;
+alter default privileges in schema public grant all on routines to postgres, service_role;
+
+alter default privileges in schema public grant select, insert, update, delete on tables to authenticated;
+alter default privileges in schema public grant select, update, usage on sequences to authenticated;
+alter default privileges in schema public grant select on tables to anon;
