@@ -134,6 +134,35 @@ create policy "Allow users to insert messages in their conversations" on public.
       and ai_conversations.user_id = auth.uid()
     )
   );
+-- SUSTAINABILITY GOALS (Personalized weekly/monthly goals created by Goal Planner Agent)
+create table public.sustainability_goals (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  title text not null,
+  description text not null,
+  target_value numeric not null,
+  current_value numeric default 0 not null,
+  category text not null check (category in ('travel', 'diet', 'shopping', 'energy', 'sustainable_action')),
+  unit text not null,
+  status text default 'active' not null check (status in ('active', 'completed', 'failed')),
+  target_date timestamp with time zone not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS on Goals
+alter table public.sustainability_goals enable row level security;
+
+create policy "Allow users to view their own goals" on public.sustainability_goals
+  for select using (auth.uid() = user_id);
+
+create policy "Allow users/agents to insert their own goals" on public.sustainability_goals
+  for insert with check (auth.uid() = user_id);
+
+create policy "Allow users/agents to update their own goals" on public.sustainability_goals
+  for update using (auth.uid() = user_id);
+
+create policy "Allow users/agents to delete their own goals" on public.sustainability_goals
+  for delete using (auth.uid() = user_id);
 
 -- AUTOMATIC PROFILE CREATION ON SIGNUP
 create or replace function public.handle_new_user()
