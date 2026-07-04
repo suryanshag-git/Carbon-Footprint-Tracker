@@ -99,6 +99,29 @@ export async function logActivityAction(data: LogActivityInput) {
       return { error: `Failed to save activity: ${insertError.message}` }
     }
 
+    // 4.5. Auto-update active sustainability goals progress
+    const { data: activeGoals } = await supabase
+      .from("sustainability_goals")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("category", data.category)
+      .eq("status", "active")
+
+    if (activeGoals && activeGoals.length > 0) {
+      for (const goal of activeGoals) {
+        const newProgress = Number(goal.current_value) + Number(data.amount)
+        const isCompleted = newProgress >= Number(goal.target_value)
+        
+        await supabase
+          .from("sustainability_goals")
+          .update({
+            current_value: newProgress,
+            status: isCompleted ? "completed" : "active"
+          })
+          .eq("id", goal.id)
+      }
+    }
+
     // 5. Update user profile stats
     const { error: updateProfileError } = await supabase
       .from("profiles")
