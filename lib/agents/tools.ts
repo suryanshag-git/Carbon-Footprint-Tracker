@@ -1,4 +1,4 @@
-import { defineTool } from "@google/adk"
+import { FunctionTool } from "@google/adk"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { logActivityAction } from "@/app/track/actions"
@@ -6,10 +6,10 @@ import { calculateCO2 } from "@/lib/calculations"
 import { EmissionCategory } from "@/lib/emission_factors"
 
 // 1. Tool to read current user profile
-export const readProfileTool = defineTool({
+export const readProfileTool = new FunctionTool({
   name: "read_profile",
   description: "Retrieve the logged-in user's sustainability profile, which includes username, current points, streak, last active timestamp, and awarded badges.",
-  inputSchema: z.object({}),
+  parameters: z.object({}),
   execute: async () => {
     try {
       const supabase = await createClient()
@@ -72,10 +72,10 @@ export const readProfileTool = defineTool({
 })
 
 // 2. Tool to read user activities
-export const readActivitiesTool = defineTool({
+export const readActivitiesTool = new FunctionTool({
   name: "read_activities",
   description: "Retrieve a list of manual carbon tracking activities logged by the user, optionally filtered by category and limit.",
-  inputSchema: z.object({
+  parameters: z.object({
     category: z.enum(["travel", "diet", "shopping", "energy", "sustainable_action"]).optional().describe("Filter by emission category."),
     limit: z.number().optional().default(15).describe("Maximum number of activities to return.")
   }),
@@ -112,10 +112,10 @@ export const readActivitiesTool = defineTool({
 })
 
 // 3. Tool to log user activity
-export const logActivityTool = defineTool({
+export const logActivityTool = new FunctionTool({
   name: "log_activity",
   description: "Log a sustainability or carbon activity for the user (travel, diet, energy, shopping, or green action). This updates points, streak, and checks/awards badges.",
-  inputSchema: z.object({
+  parameters: z.object({
     category: z.enum(["travel", "diet", "shopping", "energy", "sustainable_action"]).describe("Emission category."),
     subcategory: z.string().describe("Subcategory type (e.g. car_petrol, flight_short, beef, electricity, tree_planted)."),
     amount: z.number().describe("Amount or quantity (e.g. distance in km, count of meals, kWh used, USD spent, actions)."),
@@ -151,10 +151,10 @@ export const logActivityTool = defineTool({
 })
 
 // 4. Tool to manage sustainability goals
-export const manageGoalsTool = defineTool({
+export const manageGoalsTool = new FunctionTool({
   name: "manage_goals",
   description: "Manage personalized sustainability goals (list, create, update progress, or complete goals). status must be active, completed, or failed. targetDate should be an ISO string.",
-  inputSchema: z.object({
+  parameters: z.object({
     action: z.enum(["list", "create", "update_progress", "complete"]).describe("Action to perform."),
     goalId: z.string().optional().describe("Database UUID of the goal to update/complete."),
     title: z.string().optional().describe("Short title for the goal (e.g., 'Meat-Free Week')."),
@@ -267,10 +267,10 @@ export const manageGoalsTool = defineTool({
 })
 
 // 5. Tool to get leaderboard
-export const getLeaderboardTool = defineTool({
+export const getLeaderboardTool = new FunctionTool({
   name: "get_leaderboard",
   description: "Retrieve the top user rankings by points to see how the user compares globally.",
-  inputSchema: z.object({
+  parameters: z.object({
     limit: z.number().optional().default(10).describe("Number of entries to retrieve.")
   }),
   execute: async ({ limit }) => {
@@ -291,10 +291,10 @@ export const getLeaderboardTool = defineTool({
 })
 
 // 6. Tool to calculate emission factors
-export const calculateEmissionTool = defineTool({
+export const calculateEmissionTool = new FunctionTool({
   name: "calculate_emission",
   description: "Helper to calculate CO2 equivalent emissions in kg for a specific category, subcategory, and amount.",
-  inputSchema: z.object({
+  parameters: z.object({
     category: z.enum(["travel", "diet", "shopping", "energy", "sustainable_action"]).describe("Emission category."),
     subcategory: z.string().describe("Subcategory code (e.g. car_petrol, beef, electricity)."),
     amount: z.number().describe("Amount/quantity of activity.")
