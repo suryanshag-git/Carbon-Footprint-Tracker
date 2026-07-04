@@ -100,10 +100,7 @@ export async function POST(request: Request) {
       activities || []
     )
 
-    const model = getGeminiModel("gemini-1.5-flash")
-    
-    // Configure model with system instruction
-    const modelWithSystem = getGeminiModel() // get default
+    const model = getGeminiModel() // Uses default 'gemini-2.5-flash'
     
     // Use generateContentStream
     const result = await model.generateContentStream({
