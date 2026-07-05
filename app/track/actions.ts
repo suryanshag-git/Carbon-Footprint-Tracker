@@ -74,7 +74,7 @@ export async function logActivityAction(data: LogActivityInput) {
     }
 
     // 3. Compute stats
-    const co2Emission = calculateCO2(data.category, data.subcategory, data.amount)
+    const co2Emission = calculateCO2(data.category, data.subcategory, data.amount, data.details)
     const newPoints = updateUserPoints(profile.points, data.category, data.subcategory, data.amount)
     
     // Update streak based on the last active time

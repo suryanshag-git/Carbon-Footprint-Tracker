@@ -297,11 +297,12 @@ export const calculateEmissionTool = new FunctionTool({
   parameters: z.object({
     category: z.enum(["travel", "diet", "shopping", "energy", "sustainable_action"]).describe("Emission category."),
     subcategory: z.string().describe("Subcategory code (e.g. car_petrol, beef, electricity)."),
-    amount: z.number().describe("Amount/quantity of activity.")
+    amount: z.number().describe("Amount/quantity of activity."),
+    details: z.object({}).optional().describe("Optional rich parameters (e.g. region, fuel_type, flight_class, weight).")
   }),
-  execute: async ({ category, subcategory, amount }) => {
+  execute: async ({ category, subcategory, amount, details }) => {
     try {
-      const co2 = calculateCO2(category as EmissionCategory, subcategory, amount)
+      const co2 = calculateCO2(category as EmissionCategory, subcategory, amount, details)
       return { category, subcategory, amount, co2_kg: co2 }
     } catch (err: any) {
       return { error: err.message || "An error occurred while calculating emissions." }
