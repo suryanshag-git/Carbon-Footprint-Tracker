@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import PDFReportButton from "@/components/profile/pdf-report-button"
+import EditProfileDialog from "@/components/profile/edit-profile-dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { logoutAction } from "@/app/auth/actions"
@@ -105,13 +106,28 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Profile Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-5">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">User Profile</h1>
-          <p className="text-muted-foreground">View your milestones, stats, and download your footprint report.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 border-b pb-6">
+        <div className="flex items-center space-x-4">
+          <div className="size-16 rounded-full overflow-hidden border-2 border-emerald-500/20 bg-muted flex items-center justify-center shrink-0">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="Avatar" className="size-full object-cover" />
+            ) : (
+              <div className="text-2xl text-emerald-800 font-bold">
+                {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : profile?.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">
+              {profile?.full_name || "Eco Warrior"}
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              @{profile?.username} &bull; Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "--"}
+            </p>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <PDFReportButton
             username={profile?.username || "user"}
             points={currentPoints}
@@ -119,6 +135,12 @@ export default async function ProfilePage() {
             totalCO2={netTotalCO2}
             breakdown={breakdownData}
             recentActivities={activities || []}
+          />
+
+          <EditProfileDialog
+            currentUsername={profile?.username || ""}
+            currentFullName={profile?.full_name || ""}
+            currentAvatarUrl={profile?.avatar_url || null}
           />
           
           <form action={handleLogout}>
@@ -134,16 +156,12 @@ export default async function ProfilePage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="border-emerald-100 dark:border-emerald-950/40">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Username</CardTitle>
-            <span className="text-emerald-600 font-bold">@</span>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Logs</CardTitle>
+            <Star className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-emerald-800 dark:text-emerald-400">
-              @{profile?.username}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "--"}
-            </p>
+            <div className="text-2xl font-bold">{activitiesCount} logs</div>
+            <p className="text-xs text-muted-foreground mt-1">Activities registered in Bhoomija</p>
           </CardContent>
         </Card>
 
