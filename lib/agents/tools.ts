@@ -1,7 +1,7 @@
 import { FunctionTool } from "@google/adk"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
-import { logActivityAction } from "@/app/track/actions"
+import { logActivityAction } from "@/app/(protected)/track/actions"
 import { calculateCO2 } from "@/lib/calculations"
 import { EmissionCategory } from "@/lib/emission_factors"
 
