@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, ChevronDown, ChevronUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -77,6 +77,20 @@ const activitySchema = z.object({
       message: "Please enter a valid amount greater than 0.",
     }),
   notes: z.string().optional(),
+  foodItem: z.string().optional(),
+  material: z.string().optional(),
+  weight: z.string().optional()
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), {
+      message: "Please enter a valid weight greater than 0.",
+    }),
+  treeType: z.string().optional(),
+  recyclingType: z.string().optional(),
+  coalPercent: z.string().optional(),
+  gasPercent: z.string().optional(),
+  solarPercent: z.string().optional(),
+  windPercent: z.string().optional(),
+  hydroPercent: z.string().optional(),
+  nuclearPercent: z.string().optional(),
 })
 
 type ActivityValues = z.infer<typeof activitySchema>
@@ -90,6 +104,7 @@ interface ActivityFormProps {
 export default function ActivityForm({ category, title, description }: ActivityFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState(false)
+  const [showAdvanced, setShowAdvanced] = React.useState(false)
   
   const config = CATEGORY_CONFIG[category]
 
@@ -99,6 +114,17 @@ export default function ActivityForm({ category, title, description }: ActivityF
       subcategory: "",
       amount: "",
       notes: "",
+      foodItem: "",
+      material: "",
+      weight: "",
+      treeType: "",
+      recyclingType: "",
+      coalPercent: "",
+      gasPercent: "",
+      solarPercent: "",
+      windPercent: "",
+      hydroPercent: "",
+      nuclearPercent: "",
     },
   })
 
@@ -106,14 +132,83 @@ export default function ActivityForm({ category, title, description }: ActivityF
   const selectedSub = form.watch("subcategory")
   const currentUnit = config.subcategories.find(s => s.value === selectedSub)?.unit || ""
 
+  const hasAdvanced = 
+    category === "diet" || 
+    category === "shopping" || 
+    (category === "energy" && selectedSub === "electricity") || 
+    (category === "sustainable_action" && (selectedSub === "tree_planted" || selectedSub === "recycling"))
+
   async function onSubmit(values: ActivityValues) {
+    if (category === "shopping" && values.material && !values.weight) {
+      form.setError("weight", { message: "Product weight is required when material is selected." })
+      return
+    }
+
+    if (category === "sustainable_action" && values.subcategory === "recycling" && values.recyclingType && !values.weight) {
+      form.setError("weight", { message: "Weight is required when recycling material type is selected." })
+      return
+    }
+
+    if (category === "energy" && values.subcategory === "electricity") {
+      const coalVal = Number(values.coalPercent || 0)
+      const gasVal = Number(values.gasPercent || 0)
+      const solarVal = Number(values.solarPercent || 0)
+      const windVal = Number(values.windPercent || 0)
+      const hydroVal = Number(values.hydroPercent || 0)
+      const nuclearVal = Number(values.nuclearPercent || 0)
+      const sum = coalVal + gasVal + solarVal + windVal + hydroVal + nuclearVal
+      
+      if (sum > 0 && sum !== 100) {
+        toast.error("Electricity source mix percentages must sum to exactly 100%.")
+        return
+      }
+    }
+
     setIsLoading(true)
+
+    const details: Record<string, any> = {
+      notes: values.notes || undefined,
+    }
+
+    if (category === "diet") {
+      if (values.foodItem) details.food_item = values.foodItem
+    } else if (category === "energy" && values.subcategory === "electricity") {
+      const coalVal = Number(values.coalPercent || 0)
+      const gasVal = Number(values.gasPercent || 0)
+      const solarVal = Number(values.solarPercent || 0)
+      const windVal = Number(values.windPercent || 0)
+      const hydroVal = Number(values.hydroPercent || 0)
+      const nuclearVal = Number(values.nuclearPercent || 0)
+      const sum = coalVal + gasVal + solarVal + windVal + hydroVal + nuclearVal
+      
+      if (sum === 100) {
+        details.source_mix = {
+          coal: coalVal,
+          gas: gasVal,
+          solar: solarVal,
+          wind: windVal,
+          hydro: hydroVal,
+          nuclear: nuclearVal,
+        }
+      }
+    } else if (category === "shopping") {
+      if (values.material) details.material = values.material
+      if (values.weight) details.weight = Number(values.weight)
+    } else if (category === "sustainable_action") {
+      if (values.subcategory === "tree_planted" && values.treeType) {
+        details.tree_type = values.treeType
+      } else if (values.subcategory === "recycling") {
+        if (values.recyclingType) details.recycling_type = values.recyclingType
+        if (values.weight) details.weight = Number(values.weight)
+      }
+    }
+
     const result = await logActivityAction({
       category,
       subcategory: values.subcategory,
       amount: Number(values.amount),
       unit: currentUnit,
-      details: values.notes ? { notes: values.notes } : {},
+      details,
     })
     setIsLoading(false)
 
@@ -142,6 +237,17 @@ export default function ActivityForm({ category, title, description }: ActivityF
         subcategory: "",
         amount: "",
         notes: "",
+        foodItem: "",
+        material: "",
+        weight: "",
+        treeType: "",
+        recyclingType: "",
+        coalPercent: "",
+        gasPercent: "",
+        solarPercent: "",
+        windPercent: "",
+        hydroPercent: "",
+        nuclearPercent: "",
       })
 
       router.push("/dashboard")
@@ -208,6 +314,266 @@ export default function ActivityForm({ category, title, description }: ActivityF
                 </FormItem>
               )}
             />
+
+            {selectedSub && hasAdvanced && (
+              <div className="border border-emerald-100/50 dark:border-emerald-950/20 rounded-lg p-4 bg-muted/20 space-y-4">
+                <button
+                  type="button"
+                  className="flex items-center justify-between w-full text-sm font-semibold text-emerald-800 dark:text-emerald-400 hover:text-emerald-900"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                >
+                  <span>Advanced options (Optional)</span>
+                  {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+
+                {showAdvanced && (
+                  <div className="pt-3 border-t border-emerald-100/30 dark:border-emerald-950/10 space-y-4 font-sans">
+                    {category === "diet" && (
+                      <FormField
+                        control={form.control}
+                        name="foodItem"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">Specific Food Item Override</FormLabel>
+                            <FormControl>
+                              <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 dark:bg-card dark:border-emerald-950/40"
+                                {...field}
+                              >
+                                <option value="">Select specific food item...</option>
+                                <option value="beef">Beef</option>
+                                <option value="lamb">Lamb</option>
+                                <option value="pork">Pork</option>
+                                <option value="chicken">Chicken</option>
+                                <option value="fish">Fish</option>
+                                <option value="rice">Rice</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="milk">Milk (Liters)</option>
+                                <option value="cheese">Cheese</option>
+                                <option value="eggs">Eggs</option>
+                                <option value="vegetables">Vegetables</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {category === "energy" && selectedSub === "electricity" && (
+                      <div className="space-y-3">
+                        <FormLabel className="text-xs font-semibold text-emerald-800 dark:text-emerald-400 block mb-1">
+                          Electricity Grid Source Mix (Optional - Must sum to 100%)
+                        </FormLabel>
+                        <div className="grid grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="coalPercent"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] text-muted-foreground font-medium">Coal (%)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="0" className="h-8 text-xs focus-visible:ring-emerald-500" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="gasPercent"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] text-muted-foreground font-medium">Natural Gas (%)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="0" className="h-8 text-xs focus-visible:ring-emerald-500" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="solarPercent"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] text-muted-foreground font-medium">Solar (%)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="0" className="h-8 text-xs focus-visible:ring-emerald-500" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="windPercent"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] text-muted-foreground font-medium">Wind (%)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="0" className="h-8 text-xs focus-visible:ring-emerald-500" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="hydroPercent"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] text-muted-foreground font-medium">Hydro (%)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="0" className="h-8 text-xs focus-visible:ring-emerald-500" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="nuclearPercent"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] text-muted-foreground font-medium">Nuclear (%)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="0" className="h-8 text-xs focus-visible:ring-emerald-500" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {category === "shopping" && (
+                      <div className="space-y-3">
+                        <FormField
+                          control={form.control}
+                          name="material"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium">Material Type Override</FormLabel>
+                              <FormControl>
+                                <select
+                                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 dark:bg-card dark:border-emerald-950/40"
+                                  {...field}
+                                >
+                                  <option value="">Select material type...</option>
+                                  <option value="cotton">Cotton</option>
+                                  <option value="polyester">Polyester</option>
+                                  <option value="wool">Wool</option>
+                                  <option value="leather">Leather</option>
+                                  <option value="silk">Silk</option>
+                                  <option value="paper">Paper</option>
+                                  <option value="plastic">Plastic</option>
+                                  <option value="metal">Metal</option>
+                                </select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="weight"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium">Weight of product (in kg)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="any"
+                                  placeholder="e.g. 0.5"
+                                  className="focus-visible:ring-emerald-500 h-9 text-sm"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+
+                    {category === "sustainable_action" && selectedSub === "tree_planted" && (
+                      <FormField
+                        control={form.control}
+                        name="treeType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">Tree Species Type</FormLabel>
+                            <FormControl>
+                              <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 dark:bg-card dark:border-emerald-950/40"
+                                {...field}
+                              >
+                                <option value="">Select tree species...</option>
+                                <option value="conifer">Conifer (Evergreen)</option>
+                                <option value="deciduous">Deciduous</option>
+                                <option value="tropical">Tropical</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {category === "sustainable_action" && selectedSub === "recycling" && (
+                      <div className="space-y-3">
+                        <FormField
+                          control={form.control}
+                          name="recyclingType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium">Recycled Material Category</FormLabel>
+                              <FormControl>
+                                <select
+                                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 dark:bg-card dark:border-emerald-950/40"
+                                  {...field}
+                                >
+                                  <option value="">Select material...</option>
+                                  <option value="plastic">Plastic</option>
+                                  <option value="paper">Paper</option>
+                                  <option value="glass">Glass</option>
+                                  <option value="metal">Metal</option>
+                                  <option value="organic">Organic/Compost</option>
+                                </select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="weight"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium">Recycled Weight (in kg)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="any"
+                                  placeholder="e.g. 4.5"
+                                  className="focus-visible:ring-emerald-500 h-9 text-sm"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             <FormField
               control={form.control}

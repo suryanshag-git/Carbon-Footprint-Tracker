@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { toast } from "sonner"
-import { Loader2, MapPin, Calculator } from "lucide-react"
+import { Loader2, MapPin, Calculator, ChevronDown, ChevronUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,13 @@ const travelFormSchema = z.object({
     }),
   origin: z.string().optional(),
   destination: z.string().optional(),
+  vehicleSize: z.string().optional(),
+  fuelEfficiency: z.string().optional()
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), {
+      message: "Please enter a valid fuel efficiency greater than 0.",
+    }),
+  fuelType: z.string().optional(),
+  flightClass: z.string().optional(),
 })
 
 type TravelFormValues = z.infer<typeof travelFormSchema>
@@ -32,6 +39,7 @@ export default function TravelForm() {
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState(false)
   const [isCalculating, setIsCalculating] = React.useState(false)
+  const [showAdvanced, setShowAdvanced] = React.useState(false)
 
   const form = useForm<TravelFormValues>({
     resolver: zodResolver(travelFormSchema),
@@ -41,10 +49,17 @@ export default function TravelForm() {
       distance: "",
       origin: "",
       destination: "",
+      vehicleSize: "",
+      fuelEfficiency: "",
+      fuelType: "",
+      flightClass: "",
     },
   })
 
   const method = form.watch("method")
+  const selectedSub = form.watch("subcategory")
+  const isRoadVehicle = selectedSub.startsWith("car_") || selectedSub === "motorbike"
+  const isFlight = selectedSub.startsWith("flight_")
 
   // Simulated Google Maps Distance Calculation
   async function handleRouteCalculation() {
@@ -80,17 +95,35 @@ export default function TravelForm() {
       return
     }
 
+    if (values.fuelEfficiency && !values.fuelType) {
+      form.setError("fuelType", { message: "Fuel type is required when setting custom efficiency." })
+      return
+    }
+
     setIsLoading(true)
+
+    const details: Record<string, any> = {
+      ...(values.method === "maps" ? {
+        method: "maps",
+        origin: values.origin,
+        destination: values.destination,
+      } : { method: "manual" }),
+    }
+
+    if (values.subcategory.startsWith("car_") || values.subcategory === "motorbike") {
+      if (values.vehicleSize) details.vehicle_size = values.vehicleSize
+      if (values.fuelEfficiency) details.fuel_efficiency = Number(values.fuelEfficiency)
+      if (values.fuelType) details.fuel_type = values.fuelType
+    } else if (values.subcategory.startsWith("flight_")) {
+      if (values.flightClass) details.flight_class = values.flightClass
+    }
+
     const result = await logActivityAction({
       category: "travel",
       subcategory: values.subcategory,
       amount: Number(values.distance),
       unit: "km",
-      details: values.method === "maps" ? {
-        method: "maps",
-        origin: values.origin,
-        destination: values.destination,
-      } : { method: "manual" },
+      details,
     })
     setIsLoading(false)
 
@@ -111,6 +144,10 @@ export default function TravelForm() {
         distance: "",
         origin: "",
         destination: "",
+        vehicleSize: "",
+        fuelEfficiency: "",
+        fuelType: "",
+        flightClass: "",
       })
 
       router.push("/dashboard")
@@ -276,6 +313,119 @@ export default function TravelForm() {
                 </FormItem>
               )}
             />
+
+            {selectedSub && (isRoadVehicle || isFlight) && (
+              <div className="border border-emerald-100/50 dark:border-emerald-950/20 rounded-lg p-4 bg-muted/20 space-y-4">
+                <button
+                  type="button"
+                  className="flex items-center justify-between w-full text-sm font-semibold text-emerald-800 dark:text-emerald-400 hover:text-emerald-900"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                >
+                  <span>Advanced Vehicle / Flight Settings (Optional)</span>
+                  {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+
+                {showAdvanced && (
+                  <div className="pt-3 border-t border-emerald-100/30 dark:border-emerald-950/10 space-y-4">
+                    {isRoadVehicle && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="vehicleSize"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium">Vehicle Size</FormLabel>
+                              <FormControl>
+                                <select
+                                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 dark:bg-card dark:border-emerald-950/40"
+                                  {...field}
+                                >
+                                  <option value="">Default (Medium)</option>
+                                  <option value="small">Small</option>
+                                  <option value="medium">Medium</option>
+                                  <option value="large">Large</option>
+                                </select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <FormField
+                            control={form.control}
+                            name="fuelEfficiency"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-medium">Fuel Efficiency (km/L or km/kWh)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="any"
+                                    placeholder="e.g. 15"
+                                    className="focus-visible:ring-emerald-500 h-9 text-sm"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="fuelType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-medium">Fuel Type</FormLabel>
+                                <FormControl>
+                                  <select
+                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 dark:bg-card dark:border-emerald-950/40"
+                                    {...field}
+                                  >
+                                    <option value="">Select fuel...</option>
+                                    <option value="petrol">Petrol</option>
+                                    <option value="diesel">Diesel</option>
+                                    <option value="lpg">LPG</option>
+                                    <option value="electric">Electric</option>
+                                  </select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {isFlight && (
+                      <FormField
+                        control={form.control}
+                        name="flightClass"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">Flight Seating Class</FormLabel>
+                            <FormControl>
+                              <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 dark:bg-card dark:border-emerald-950/40"
+                                {...field}
+                              >
+                                <option value="">Default (Economy)</option>
+                                <option value="economy">Economy</option>
+                                <option value="premium">Premium Economy</option>
+                                <option value="business">Business</option>
+                                <option value="first">First</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium" disabled={isLoading}>
               {isLoading ? (
