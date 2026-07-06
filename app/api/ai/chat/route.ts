@@ -38,31 +38,20 @@ export async function POST(request: Request) {
     // 3. Resolve or create AI Conversation ID
     let currentConversationId = conversationId
     if (!currentConversationId) {
-      // Find the user's latest conversation or create one
-      const { data: latestConv } = await supabase
+      const title = message.substring(0, 35) + (message.length > 35 ? "..." : "")
+      const { data: newConv, error: newConvError } = await supabase
         .from("ai_conversations")
+        .insert({
+          user_id: user.id,
+          title: title,
+        })
         .select("id")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
+        .single()
 
-      if (latestConv && latestConv.length > 0) {
-        currentConversationId = latestConv[0].id
-      } else {
-        const { data: newConv, error: newConvError } = await supabase
-          .from("ai_conversations")
-          .insert({
-            user_id: user.id,
-            title: message.substring(0, 30) + "...",
-          })
-          .select("id")
-          .single()
-
-        if (newConvError || !newConv) {
-          return NextResponse.json({ error: "Failed to create conversation" }, { status: 500 })
-        }
-        currentConversationId = newConv.id
+      if (newConvError || !newConv) {
+        return NextResponse.json({ error: "Failed to create conversation" }, { status: 500 })
       }
+      currentConversationId = newConv.id
     }
 
     // 4. Save User Message to Database
