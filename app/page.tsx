@@ -11,7 +11,7 @@ export default function Home() {
         <div className="flex h-16 max-w-7xl mx-auto items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-2">
             <span className="text-2xl select-none">🌱</span>
-            <span className="text-xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">EcoTrack</span>
+            <span className="text-xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">Bhoomija</span>
           </div>
           <div className="flex items-center space-x-3">
             <Link href="/auth/login">
@@ -42,7 +42,7 @@ export default function Home() {
                 Track, Offset, and Reduce Your <span className="text-emerald-600 dark:text-emerald-400">Carbon Footprint</span>
               </h1>
               <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                Empower your path to net-zero with EcoTrack. Log travel commutes, dietary choices, energy bills, and shopping. Leverage personalized recommendations from Gemini AI to shrink your footprints.
+                Empower your path to net-zero with Bhoomija. Log travel commutes, dietary choices, energy bills, and shopping. Leverage personalized recommendations from Gemini AI to shrink your footprints.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link href="/auth/signup" className="w-full sm:w-auto">
@@ -82,7 +82,7 @@ export default function Home() {
                 Designed for Active Carbon Reduction
               </h2>
               <p className="text-muted-foreground text-sm sm:text-base">
-                EcoTrack merges daily logging, route tracking, rewards, and cognitive AI to simplify environmental stewardship.
+                Bhoomija merges daily logging, route tracking, rewards, and cognitive AI to simplify environmental stewardship.
               </p>
             </div>
 
@@ -159,7 +159,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-emerald-100/40 dark:border-emerald-950/20 py-8 px-4 sm:px-6 lg:px-8 text-center text-xs text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} EcoTrack Inc. Towards a Net-Zero Future. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Bhoomija Inc. Towards a Net-Zero Future. All rights reserved.</p>
       </footer>
     </div>
   )

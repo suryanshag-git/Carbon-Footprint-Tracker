@@ -54,7 +54,7 @@ export default function LoginPage() {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2 text-3xl">🌱</div>
           <CardTitle className="text-2xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">
-            Welcome to EcoTrack
+            Welcome to Bhoomija
           </CardTitle>
           <CardDescription>
             Enter your credentials to manage your carbon footprint

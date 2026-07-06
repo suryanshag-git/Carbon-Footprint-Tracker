@@ -42,7 +42,7 @@ const STARTER_CHIPS = [
 const getAgentLabel = (name: string) => {
   switch (name) {
     case "coordinator":
-      return "Eco-Coach Orchestrator"
+      return "Eco Mitra Orchestrator"
     case "logging_agent":
       return "Logging Agent 📝"
     case "vision_agent":
@@ -244,7 +244,7 @@ export default function ChatInterface() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to contact Eco-Coach API.")
+        throw new Error("Failed to contact Eco Mitra API.")
       }
 
       const respConvId = response.headers.get("X-Conversation-ID")
@@ -401,7 +401,7 @@ export default function ChatInterface() {
             <div className="truncate">
               <CardTitle className="text-base md:text-lg text-emerald-800 dark:text-emerald-400 truncate">
                 {conversationId
-                  ? conversations.find((c) => c.id === conversationId)?.title || "Eco-Coach Chat"
+                  ? conversations.find((c) => c.id === conversationId)?.title || "Eco Mitra Chat"
                   : "New Eco-Advisory"}
               </CardTitle>
               <CardDescription className="text-[10px] md:text-xs">
@@ -444,7 +444,7 @@ export default function ChatInterface() {
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
               <MessageSquare className="h-10 w-10 text-muted-foreground/45" />
               <div>
-                <h4 className="font-semibold text-sm">Ask your Eco-Coach</h4>
+                <h4 className="font-semibold text-sm">Ask Eco Mitra</h4>
                 <p className="text-xs text-muted-foreground max-w-sm mt-1">
                   Your coach has access to your points, streaks, and logging history to deliver custom suggestions.
                 </p>
@@ -590,7 +590,7 @@ export default function ChatInterface() {
               placeholder={
                 isAgenticMode 
                   ? "Ask details, log actions, or upload image..." 
-                  : "Ask your Eco-Coach..."
+                  : "Ask Eco Mitra..."
               }
               disabled={isLoading}
               className="flex-1 focus-visible:ring-emerald-500"

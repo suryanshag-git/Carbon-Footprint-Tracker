@@ -19,7 +19,7 @@ export default function ProtectedLayout({
       <header className="flex md:hidden items-center justify-between px-4 h-16 border-b bg-card sticky top-0 z-20">
         <div className="flex items-center space-x-2">
           <span className="text-xl">🌱</span>
-          <span className="font-bold tracking-tight text-emerald-800 dark:text-emerald-400">EcoTrack</span>
+          <span className="font-bold tracking-tight text-emerald-800 dark:text-emerald-400">Bhoomija</span>
         </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}

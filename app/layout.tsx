@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "EcoTrack - Carbon Footprint Tracker",
-  description: "Track your travel, diet, energy, and shopping emissions, log sustainable actions, and receive AI eco-coaching insights.",
+  title: "Bhoomija - Carbon Footprint Tracker",
+  description: "Track your travel, diet, energy, and shopping emissions, log sustainable actions, and receive AI coaching insights from Eco Mitra.",
 }
 
 export default function RootLayout({

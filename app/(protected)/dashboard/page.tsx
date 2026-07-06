@@ -187,7 +187,7 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground">You don't have any active goals yet.</p>
                 <Link href="/ai-coach">
                   <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs">
-                    Chat with Eco-Coach to start
+                    Chat with Eco Mitra to start
                   </Button>
                 </Link>
               </div>

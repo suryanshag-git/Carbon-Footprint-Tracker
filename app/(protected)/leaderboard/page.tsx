@@ -39,7 +39,7 @@ export default async function LeaderboardPage() {
           </div>
           <div>
             <CardTitle>Global Rankings</CardTitle>
-            <CardDescription>Top environmental champions in the EcoTrack network</CardDescription>
+            <CardDescription>Top environmental champions in the Bhoomija network</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

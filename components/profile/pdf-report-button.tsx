@@ -39,7 +39,7 @@ export default function PDFReportButton(props: PDFReportButtonProps) {
   return (
     <PDFDownloadLink
       document={<PDFReport {...props} />}
-      fileName={`ecotrack-report-${props.username}.pdf`}
+      fileName={`bhoomija-report-${props.username}.pdf`}
       style={{ textDecoration: "none" }}
     >
       {({ loading }) => (

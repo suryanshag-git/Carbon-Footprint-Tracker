@@ -23,7 +23,7 @@ export async function getOrCreateAgentRunner(
 ): Promise<InMemoryRunner> {
   const runner = new InMemoryRunner({
     agent: rootAgent,
-    appName: "EcoTrack"
+    appName: "Bhoomija"
   })
 
   // 1. Check if the session already exists in the runner's session service
