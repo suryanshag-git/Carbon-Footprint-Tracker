@@ -134,7 +134,7 @@ export function calculateCO2(
       if (subcategory === "tree_planted") {
         const treeType = (details?.tree_type as keyof typeof TREE_SEQUESTRATION) || "deciduous"
         const sequestrationFactor = TREE_SEQUESTRATION[treeType] || -22.0
-        return Number((amount * sequestrationFactor).toFixed(2))
+        return Math.abs(Number((amount * sequestrationFactor).toFixed(2)))
       }
 
       // Check for detailed recycling weight
@@ -142,13 +142,13 @@ export function calculateCO2(
         const recyclingType = details.recycling_type as keyof typeof RECYCLING_SAVE_FACTORS
         if (recyclingType in RECYCLING_SAVE_FACTORS) {
           const factor = RECYCLING_SAVE_FACTORS[recyclingType]
-          return Number((details.weight * factor).toFixed(2))
+          return Math.abs(Number((details.weight * factor).toFixed(2)))
         }
       }
 
       // Fallback to subcategory
       const baseFactor = EMISSION_FACTORS.sustainable_action[subcategory as ActionSubcategory] || -0.5
-      return Number((amount * baseFactor).toFixed(2))
+      return Math.abs(Number((amount * baseFactor).toFixed(2)))
     }
 
     default: {
