@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Bhoomija - Carbon Footprint Tracker",
+  title: "Jagrati - Carbon Footprint Tracker",
   description: "Track your travel, diet, energy, and shopping emissions, log sustainable actions, and receive AI coaching insights from Eco Mitra.",
 }
 

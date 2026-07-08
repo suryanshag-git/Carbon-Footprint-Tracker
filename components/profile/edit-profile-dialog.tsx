@@ -105,7 +105,7 @@ export default function EditProfileDialog({
         <DialogHeader>
           <DialogTitle className="text-emerald-800 dark:text-emerald-400">Edit Profile Details</DialogTitle>
           <DialogDescription>
-            Update your Bhoomija profile details and upload a custom avatar. Click save when done.
+            Update your Jagrati profile details and upload a custom avatar. Click save when done.
           </DialogDescription>
         </DialogHeader>
 

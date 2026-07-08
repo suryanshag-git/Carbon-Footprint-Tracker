@@ -139,7 +139,7 @@ export default function PDFReport({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Bhoomija Carbon Footprint Report</Text>
+          <Text style={styles.title}>Jagrati Carbon Footprint Report</Text>
           <Text style={styles.subtitle}>Generated for @{username} on {dateStr}</Text>
         </View>
 
@@ -219,7 +219,7 @@ export default function PDFReport({
 
         {/* Footer */}
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Page ${pageNumber} of ${totalPages}  |  Bhoomija - Towards a Net-Zero Future`
+          `Page ${pageNumber} of ${totalPages}  |  Jagrati - Towards a Net-Zero Future`
         )} />
       </Page>
     </Document>

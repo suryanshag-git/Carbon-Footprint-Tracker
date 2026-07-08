@@ -161,7 +161,7 @@ export default async function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activitiesCount} logs</div>
-            <p className="text-xs text-muted-foreground mt-1">Activities registered in Bhoomija</p>
+            <p className="text-xs text-muted-foreground mt-1">Activities registered in Jagrati</p>
           </CardContent>
         </Card>
 

@@ -13,7 +13,7 @@ export const loggingAgent = new LlmAgent({
   name: "logging_agent",
   model: "gemini-2.5-flash",
   description: "Specialist in logging manual activities. Use this when the user describes an activity in natural language (e.g. 'I just drove 10km in my car', 'I ate a vegan lunch today') and wants to log it.",
-  instruction: `You are the Logging Agent for Bhoomija.
+  instruction: `You are the Logging Agent for Jagrati.
 Your job is to parse the user's natural language description of an activity and log it using the log_activity tool.
 Verify you have the following information:
 - category: one of 'travel', 'diet', 'shopping', 'energy', 'sustainable_action'
@@ -30,7 +30,7 @@ export const visionAgent = new LlmAgent({
   name: "vision_agent",
   model: "gemini-2.5-pro", // Pro model for visual reasoning precision
   description: "Specialist in image uploads. Use this when the user uploads an image (like a food dish, travel receipt, transit ticket, or utility bill) and wants to automatically log it or analyze it.",
-  instruction: `You are the Vision Agent for Bhoomija.
+  instruction: `You are the Vision Agent for Jagrati.
 Your job is to analyze the uploaded image (e.g., food, ticket, receipt, utility bill), extract the relevant carbon footprint details, and log it using 'log_activity'.
 Ensure you parse the image content to identify:
 - The category (e.g., travel for tickets, diet for meals, energy for utility bills)
@@ -46,7 +46,7 @@ export const analyticsAgent = new LlmAgent({
   name: "analytics_agent",
   model: "gemini-2.5-flash",
   description: "Specialist in carbon footprint analysis. Use this when the user asks questions about their emission logs, trends, category breakdowns, averages, leaderboard ranking, or comparison to standards.",
-  instruction: `You are the Analytics Agent for Bhoomija.
+  instruction: `You are the Analytics Agent for Jagrati.
 Your job is to provide deep insights and statistics about the user's carbon footprint.
 You can read their profile (including total points and streaks), query their logged activities, and check leaderboard standings.
 Analyze their data to:
@@ -62,7 +62,7 @@ export const goalPlannerAgent = new LlmAgent({
   name: "goal_planner_agent",
   model: "gemini-2.5-flash",
   description: "Specialist in setting, listing, or updating sustainability goals and weekly plans. Use this when the user wants to set a goal, create a challenge, list active goals, or check progress on active challenges.",
-  instruction: `You are the Goal Planner Agent for Bhoomija.
+  instruction: `You are the Goal Planner Agent for Jagrati.
 Your job is to help users set, track, and complete personalized sustainability goals and challenges.
 You can list their active goals, create new ones in the database, and update their progress.
 When a user asks for a goal or plan:
@@ -78,7 +78,7 @@ export const rootAgent = new LlmAgent({
   name: "coordinator",
   model: "gemini-2.5-flash",
   description: "Root Eco Mitra orchestrator that coordinates responses and delegates to specialist agents.",
-  instruction: `You are "Eco Mitra", the main coordinator agent for the Bhoomija multi-agent coach system.
+  instruction: `You are "Eco Mitra", the main coordinator agent for the Jagrati multi-agent coach system.
 Your job is to greet the user, understand their request, and delegate it to the appropriate specialist agent using your tools:
 - Use 'logging_agent' to log activities described in text (like driving, eating).
 - Use 'vision_agent' to handle image uploads and extract/log data.

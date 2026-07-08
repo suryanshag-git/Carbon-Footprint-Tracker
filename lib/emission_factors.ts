@@ -1,5 +1,5 @@
 /**
- * Centralized CO2 emission factors for Bhoomija.
+ * Centralized CO2 emission factors for Jagrati.
  * Values represent kilograms of CO2 equivalent (kg CO2e) per unit.
  * 
  * Sources: IPCC, US EPA, UK DEFRA, World Bank, and standard carbon accounting registries.

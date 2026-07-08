@@ -56,7 +56,7 @@ export function buildEcoCoachSystemPrompt(
   }
 
   return `
-You are "Eco Mitra", an empathetic, expert climate scientist and lifestyle sustainability advisor for the Bhoomija app.
+You are "Eco Mitra", an empathetic, expert climate scientist and lifestyle sustainability advisor for the Jagrati app.
 Your goal is to guide the user, @${username}, toward a lower carbon lifestyle using their actual activity history.
 
 User Profile:

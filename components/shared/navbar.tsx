@@ -43,7 +43,7 @@ export default function Navbar({
           {!isCollapsed && (
             <div className="flex items-center space-x-2 overflow-hidden">
               <span className="text-2xl flex-shrink-0">🌱</span>
-              <span className="text-xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400 whitespace-nowrap font-semibold">Bhoomija</span>
+              <span className="text-xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400 whitespace-nowrap font-semibold">Jagrati</span>
             </div>
           )}
           {isCollapsed && (
@@ -114,7 +114,7 @@ export default function Navbar({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="text-2xl">🌱</span>
-              <span className="text-xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">Bhoomija</span>
+              <span className="text-xl font-bold tracking-tight text-emerald-800 dark:text-emerald-400">Jagrati</span>
             </div>
             <button
               onClick={() => setIsMobileOpen(false)}

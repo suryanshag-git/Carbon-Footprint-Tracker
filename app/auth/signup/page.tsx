@@ -64,7 +64,7 @@ export default function SignupPage() {
             Create an Account
           </CardTitle>
           <CardDescription>
-            Join Bhoomija and begin your green journey
+            Join Jagrati and begin your green journey
           </CardDescription>
         </CardHeader>
         <CardContent>
